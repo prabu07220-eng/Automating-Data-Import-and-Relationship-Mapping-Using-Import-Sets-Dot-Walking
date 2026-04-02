@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NexaDesk — Employee Incident Portal</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500&display=swap');
+:root{--bg:#0a0c10;--surface:#111318;--surface2:#181c24;--border:#22283a;--accent:#4f8eff;--accent2:#7c5cfc;--success:#22d3a5;--warn:#f59e42;--danger:#f25c5c;--text:#e8eaf2;--muted:#7a80a0;--radius:14px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 60% -10%,rgba(79,142,255,.12) 0%,transparent 70%),radial-gradient(ellipse 50% 40% at 10% 90%,rgba(124,92,252,.10) 0%,transparent 60%);pointer-events:none;z-index:0}
+#app{position:relative;z-index:1}
+
+/* LOGIN */
+#loginPage{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem}
+.login-wrap{width:100%;max-width:420px}
+.login-logo{text-align:center;margin-bottom:2.5rem}
+.brand-text{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;background:linear-gradient(120deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-1px}
+.login-logo p{color:var(--muted);font-size:.9rem;margin-top:.3rem}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:2rem;box-shadow:0 0 0 1px var(--border),0 8px 40px rgba(79,142,255,.08)}
+.card-title{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:700;margin-bottom:1.5rem}
+.field{margin-bottom:1.2rem}
+.field label{display:block;font-size:.78rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.4rem}
+.field input,.field select,.field textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:9px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.93rem;padding:.72rem 1rem;outline:none;transition:border-color .2s,box-shadow .2s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,142,255,.15)}
+.field textarea{resize:vertical;min-height:80px}
+.field select{cursor:pointer}
+.field select option{background:#181c24}
+.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.72rem 1.6rem;border-radius:9px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.92rem;font-weight:500;transition:all .2s;-webkit-appearance:none}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 4px 20px rgba(79,142,255,.3)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(79,142,255,.45)}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.btn-danger{background:rgba(242,92,92,.15);color:var(--danger);border:1px solid rgba(242,92,92,.3)}
+.btn-success{background:rgba(34,211,165,.15);color:var(--success);border:1px solid rgba(34,211,165,.3)}
+.btn-block{width:100%;justify-content:center}
+.btn-sm{padding:.32rem .8rem!important;font-size:.8rem!important}
+.login-hint{text-align:center;font-size:.82rem;color:var(--muted);margin-top:1rem}
+.login-hint a{color:var(--accent);cursor:pointer;text-decoration:none}
+.login-hint a:hover{text-decoration:underline}
+.err-box{background:rgba(242,92,92,.12);border:1px solid rgba(242,92,92,.3);border-radius:8px;padding:.65rem 1rem;color:var(--danger);font-size:.85rem;margin-bottom:1rem;display:none}
+
+/* MAIN */
+#mainApp{display:none;min-height:100vh}
+.topbar{height:58px;border-bottom:1px solid var(--border);background:rgba(10,12,16,.88);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:space-between;padding:0 1.8rem;position:sticky;top:0;z-index:100}
+.topbar .brand-text{font-size:1.2rem}
+.topbar-right{display:flex;align-items:center;gap:1rem}
+.user-pill{display:flex;align-items:center;gap:.6rem;background:var(--surface2);border:1px solid var(--border);border-radius:50px;padding:.35rem .9rem .35rem .5rem}
+.avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#fff;flex-shrink:0}
+.user-pill span{font-size:.85rem;color:var(--muted)}
+.shell{display:flex}
+.sidebar{width:220px;min-height:calc(100vh - 58px);border-right:1px solid var(--border);background:var(--surface);padding:1.5rem .8rem;flex-shrink:0}
+.nav-section{margin-bottom:1.5rem}
+.nav-label{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;padding:0 .6rem;display:block;margin-bottom:.5rem}
+.nav-item{display:flex;align-items:center;gap:.75rem;padding:.62rem .8rem;border-radius:9px;cursor:pointer;font-size:.9rem;color:var(--muted);transition:all .18s;margin-bottom:2px;user-select:none}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:rgba(79,142,255,.12);color:var(--accent)}
+.nav-icon{font-size:1rem;width:20px;text-align:center}
+.badge{margin-left:auto;background:var(--accent);color:#fff;font-size:.68rem;font-weight:700;padding:1px 7px;border-radius:50px}
+.content{flex:1;padding:2rem;overflow:auto;min-width:0}
+.page{display:none}
+.page.active{display:block}
+.ph{margin-bottom:1.8rem}
+.ph h1{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:700}
+.ph p{color:var(--muted);font-size:.9rem;margin-top:.3rem}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1rem;margin-bottom:2rem}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.3rem 1.5rem}
+.stat .lbl{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.stat .val{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;margin-top:.3rem}
+.stat .dl{font-size:.8rem;margin-top:.2rem;color:var(--success)}
+.cb{border-color:rgba(79,142,255,.3)!important}.cp{border-color:rgba(124,92,252,.3)!important}.cg{border-color:rgba(34,211,165,.3)!important}.co{border-color:rgba(245,158,66,.3)!important}
+.tcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:1.5rem}
+.ttbar{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.3rem;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:.8rem}
+.ttbar h3{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700}
+.tactions{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+.sinput{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.85rem;padding:.5rem .9rem;outline:none;transition:border-color .2s}
+.sinput:focus{border-color:var(--accent)}
+.sinput::placeholder{color:var(--muted)}
+table{width:100%;border-collapse:collapse}
+th{background:var(--surface2);font-size:.74rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);padding:.7rem 1.2rem;text-align:left;font-weight:500;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:.82rem 1.2rem;font-size:.88rem;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.015)}
+.chip{display:inline-flex;align-items:center;padding:.22rem .75rem;border-radius:50px;font-size:.74rem;font-weight:500;white-space:nowrap}
+.cblue{background:rgba(79,142,255,.15);color:var(--accent)}.cgreen{background:rgba(34,211,165,.15);color:var(--success)}.corange{background:rgba(245,158,66,.15);color:var(--warn)}.cred{background:rgba(242,92,92,.15);color:var(--danger)}.cpurple{background:rgba(124,92,252,.15);color:var(--accent2)}
+.modal-ov{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.65);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:1.5rem}
+.modal-ov.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:18px;box-shadow:0 24px 80px rgba(0,0,0,.5);width:100%;max-width:520px;padding:2rem;animation:sIn .2s ease;max-height:90vh;overflow-y:auto}
+@keyframes sIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.mh h2{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700}
+.xbtn{background:none;border:none;color:var(--muted);font-size:1.5rem;cursor:pointer;line-height:1;padding:0 .3rem}
+.xbtn:hover{color:var(--text)}
+.mfoot{display:flex;gap:.8rem;justify-content:flex-end;margin-top:1.5rem}
+.mgrbox{background:rgba(79,142,255,.08);border:1px solid rgba(79,142,255,.25);border-radius:10px;padding:1rem 1.2rem;margin-top:.5rem;display:none}
+.mgrbox .ml{font-size:.74rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.3rem}
+.mgrbox .mv{font-size:.9rem;color:var(--accent);font-weight:500}
+.dropzone{border:2px dashed var(--border);border-radius:var(--radius);padding:2.5rem;text-align:center;cursor:pointer;transition:all .2s;color:var(--muted)}
+.dropzone:hover{border-color:var(--accent);color:var(--accent)}
+.dropzone .dicon{font-size:2.5rem;display:block;margin-bottom:.8rem}
+#toastC{position:fixed;bottom:2rem;right:2rem;z-index:999;display:flex;flex-direction:column;gap:.6rem}
+.toast{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.9rem 1.3rem;font-size:.88rem;display:flex;align-items:center;gap:.7rem;box-shadow:0 8px 30px rgba(0,0,0,.4);animation:tIn .3s ease;min-width:250px}
+@keyframes tIn{from{transform:translateX(30px);opacity:0}to{transform:translateX(0);opacity:1}}
+.toast.success{border-color:rgba(34,211,165,.4)}.toast.error{border-color:rgba(242,92,92,.4)}
+.erow td{text-align:center!important;color:var(--muted)!important;padding:2.5rem!important}
+@media(max-width:768px){.sidebar{display:none}.content{padding:1rem}.stats-row{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- LOGIN -->
+<div id="loginPage">
+  <div class="login-wrap">
+    <div class="login-logo">
+      <div class="brand-text">NexaDesk</div>
+      <p>Employee Incident Management Portal</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Sign in to continue</div>
+      <div id="errBox" class="err-box">⚠ Invalid credentials. Try <strong>admin / admin123</strong></div>
+      <div class="field">
+        <label>Username</label>
+        <input type="text" id="lu" placeholder="admin" autocomplete="username" />
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="lp" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+      <button type="button" class="btn btn-primary btn-block" id="loginBtn">Sign In &rarr;</button>
+      <p class="login-hint">Quick demo: <a id="demoFill">admin / admin123</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp">
+  <div class="topbar">
+    <div class="brand-text">NexaDesk</div>
+    <div class="topbar-right">
+      <div class="user-pill">
+        <div class="avatar" id="topAvt">A</div>
+        <span id="topName">Admin</span>
+      </div>
+      <button type="button" class="btn btn-secondary btn-sm" id="logoutBtn">Logout</button>
+    </div>
+  </div>
+  <div class="shell">
+    <div class="sidebar">
+      <div class="nav-section">
+        <span class="nav-label">Overview</span>
+        <div class="nav-item active" data-page="dashboard"><span class="nav-icon">📊</span> Dashboard</div>
+      </div>
+      <div class="nav-section">
+        <span class="nav-label">Management</span>
+        <div class="nav-item" data-page="employees"><span class="nav-icon">👥</span> Employees <span class="badge" id="eBadge">0</span></div>
+        <div class="nav-item" data-page="incidents"><span class="nav-icon">⚡</span> Incidents <span class="badge" id="iBadge">0</span></div>
+      </div>
+      <div class="nav-section">
+        <span class="nav-label">Import</span>
+        <div class="nav-item" data-page="import"><span class="nav-icon">📥</span> Import CSV</div>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="ph"><h1>Dashboard</h1><p>Live overview of employees &amp; incidents</p></div>
+        <div class="stats-row">
+          <div class="stat cb"><div class="lbl">Employees</div><div class="val" id="s1">0</div><div class="dl">↑ Total records</div></div>
+          <div class="stat cp"><div class="lbl">Departments</div><div class="val" id="s2">0</div><div class="dl">Unique</div></div>
+          <div class="stat co"><div class="lbl">Open Incidents</div><div class="val" id="s3">0</div><div class="dl">Needs attention</div></div>
+          <div class="stat cg"><div class="lbl">Resolved</div><div class="val" id="s4">0</div><div class="dl">Closed</div></div>
+        </div>
+        <div class="tcard">
+          <div class="ttbar"><h3>Recent Incidents</h3></div>
+          <table><thead><tr><th>ID</th><th>Title</th><th>Assigned To</th><th>Dept</th><th>Manager Email</th><th>Status</th><th>Priority</th></tr></thead>
+          <tbody id="dashTbl"></tbody></table>
+        </div>
+      </div>
+
+      <!-- EMPLOYEES -->
+      <div class="page" id="page-employees">
+        <div class="ph"><h1>Employees</h1><p>Manage employee records and department assignments</p></div>
+        <div class="tcard">
+          <div class="ttbar">
+            <h3>All Employees</h3>
+            <div class="tactions">
+              <input class="sinput" id="eSearch" placeholder="Search name, dept…" />
+              <button type="button" class="btn btn-primary btn-sm" id="addEBtn">+ Add Employee</button>
+            </div>
+          </div>
+          <table><thead><tr><th>Name</th><th>Email</th><th>Department</th><th>Manager</th><th>Manager Email</th><th>Actions</th></tr></thead>
+          <tbody id="eTbl"></tbody></table>
+        </div>
+      </div>
+
+      <!-- INCIDENTS -->
+      <div class="page" id="page-incidents">
+        <div class="ph"><h1>Incidents</h1><p>Track, assign, and resolve incidents</p></div>
+        <div class="tcard">
+          <div class="ttbar">
+            <h3>All Incidents</h3>
+            <div class="tactions">
+              <input class="sinput" id="iSearch" placeholder="Search incidents…" />
+              <button type="button" class="btn btn-primary btn-sm" id="addIBtn">+ New Incident</button>
+            </div>
+          </div>
+          <table><thead><tr><th>ID</th><th>Title</th><th>Assigned To</th><th>Dept</th><th>Manager Email</th><th>Priority</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="iTbl"></tbody></table>
+        </div>
+      </div>
+
+      <!-- IMPORT -->
+      <div class="page" id="page-import">
+        <div class="ph"><h1>Import Employees</h1><p>Bulk import via CSV from external systems</p></div>
+        <div class="card" style="margin-bottom:1.5rem">
+          <div class="card-title" style="font-size:1rem">CSV Format Guide</div>
+          <p style="color:var(--muted);font-size:.88rem;margin-bottom:.8rem">Required columns (exact header):</p>
+          <code style="display:block;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1.2rem;font-size:.85rem;color:var(--accent)">Name,Email,Department,Manager,ManagerEmail</code>
+          <p style="color:var(--muted);font-size:.82rem;margin-top:.8rem">Example: <em>Alice,alice@co.com,Engineering,Bob,bob@co.com</em></p>
+        </div>
+        <div class="dropzone" id="dropZone">
+          <span class="dicon">📂</span>
+          <p><strong>Click to upload CSV file</strong></p>
+          <p style="font-size:.8rem;margin-top:.4rem">Supported: .csv</p>
+        </div>
+        <input type="file" id="csvFile" accept=".csv" style="display:none" />
+        <div id="importPrev" style="display:none;margin-top:1.5rem">
+          <div class="tcard">
+            <div class="ttbar">
+              <h3 id="prevTitle">Preview (0 rows)</h3>
+              <button type="button" class="btn btn-success btn-sm" id="confirmImp">✓ Confirm Import</button>
+            </div>
+            <table><thead><tr><th>Name</th><th>Email</th><th>Department</th><th>Manager</th><th>Manager Email</th></tr></thead>
+            <tbody id="prevTbl"></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EMPLOYEE MODAL -->
+<div class="modal-ov" id="empModal">
+  <div class="modal">
+    <div class="mh">
+      <h2 id="empMT">Add Employee</h2>
+      <button type="button" class="xbtn" data-close="empModal">&#x2715;</button>
+    </div>
+    <div class="field"><label>Full Name</label><input type="text" id="fn" placeholder="e.g. John Doe" /></div>
+    <div class="field"><label>Email</label><input type="email" id="fe" placeholder="john@company.com" /></div>
+    <div class="field"><label>Department</label>
+      <select id="fd">
+        <option value="">— Select Department —</option>
+        <option>Engineering</option><option>HR</option><option>Finance</option>
+        <option>Marketing</option><option>Operations</option><option>Sales</option><option>IT Support</option>
+      </select>
+    </div>
+    <div class="field"><label>Manager Name</label><input type="text" id="fm" placeholder="e.g. Jane Smith" /></div>
+    <div class="field"><label>Manager Email</label><input type="email" id="fme" placeholder="jane@company.com" /></div>
+    <div class="mfoot">
+      <button type="button" class="btn btn-secondary" data-close="empModal">Cancel</button>
+      <button type="button" class="btn btn-primary" id="saveEmpBtn">Save Employee</button>
+    </div>
+  </div>
+</div>
+
+<!-- INCIDENT MODAL -->
+<div class="modal-ov" id="incModal">
+  <div class="modal">
+    <div class="mh">
+      <h2>New Incident</h2>
+      <button type="button" class="xbtn" data-close="incModal">&#x2715;</button>
+    </div>
+    <div class="field"><label>Title</label><input type="text" id="it" placeholder="Brief description" /></div>
+    <div class="field"><label>Description</label><textarea id="idesc" placeholder="Detailed explanation…"></textarea></div>
+    <div class="field"><label>Assign To Employee</label>
+      <select id="iassign"><option value="">— Select Employee —</option></select>
+    </div>
+    <div class="mgrbox" id="mgrBox">
+      <div class="ml">🔒 Auto-filled — Manager Info</div>
+      <div class="mv" id="mgrVal">—</div>
+    </div>
+    <div class="field" style="margin-top:1rem"><label>Priority</label>
+      <select id="ipri"><option value="Low">Low</option><option value="Medium" selected>Medium</option><option value="High">High</option><option value="Critical">Critical</option></select>
+    </div>
+    <div class="field"><label>Status</label>
+      <select id="istat"><option value="Open">Open</option><option value="In Progress">In Progress</option><option value="Resolved">Resolved</option></select>
+    </div>
+    <div class="mfoot">
+      <button type="button" class="btn btn-secondary" data-close="incModal">Cancel</button>
+      <button type="button" class="btn btn-primary" id="saveIncBtn">Create Incident</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastC"></div>
+
+<script>
+(function(){
+// ── DATA ──
+var emps=[
+  {id:1,name:"Alice Johnson",email:"alice@acme.com",department:"Engineering",manager:"Bob Lee",managerEmail:"bob@acme.com"},
+  {id:2,name:"Ravi Kumar",email:"ravi@acme.com",department:"HR",manager:"Sara Miles",managerEmail:"sara@acme.com"},
+  {id:3,name:"Priya Nair",email:"priya@acme.com",department:"Finance",manager:"Tom Roy",managerEmail:"tom@acme.com"},
+  {id:4,name:"Carlos Vega",email:"carlos@acme.com",department:"Engineering",manager:"Bob Lee",managerEmail:"bob@acme.com"},
+  {id:5,name:"Sophie Martin",email:"sophie@acme.com",department:"Marketing",manager:"Eve Clark",managerEmail:"eve@acme.com"}
+];
+var incs=[
+  {id:"INC-001",title:"VPN not connecting",desc:"Cannot connect from home.",aid:1,priority:"High",status:"Open"},
+  {id:"INC-002",title:"Payroll discrepancy",desc:"Incorrect salary March.",aid:2,priority:"Critical",status:"In Progress"},
+  {id:"INC-003",title:"Email bounce issue",desc:"Finance domain bouncing.",aid:3,priority:"Medium",status:"Open"}
+];
+var eIdC=6,iIdC=4,pImport=[],editId=null;
+
+function g(id){return document.getElementById(id);}
+
+// ── CHIPS ──
+function pc(p){var m={Low:'cblue',Medium:'cpurple',High:'corange',Critical:'cred'};return '<span class="chip '+(m[p]||'cblue')+'">'+p+'</span>';}
+function sc(s){var m={Open:'corange','In Progress':'cblue',Resolved:'cgreen'};return '<span class="chip '+(m[s]||'cblue')+'">'+s+'</span>';}
+function dc(d){return '<span class="chip cpurple">'+d+'</span>';}
+
+// ── TOAST ──
+function toast(msg,type){
+  var el=document.createElement('div');
+  el.className='toast '+(type||'success');
+  el.innerHTML=(type==='error'?'&#10060;':'&#9989;')+' '+msg;
+  g('toastC').appendChild(el);
+  setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},3500);
+}
+
+// ── LOGIN ──
+function doLogin(){
+  var u=g('lu').value.trim(), p=g('lp').value.trim();
+  if(u==='admin'&&p==='admin123'){
+    g('errBox').style.display='none';
+    g('loginPage').style.display='none';
+    g('mainApp').style.display='block';
+    refreshAll();
+  } else {
+    g('errBox').style.display='block';
+    g('lp').value='';
+    g('lp').focus();
+  }
+}
+g('loginBtn').addEventListener('click',doLogin);
+g('logoutBtn').addEventListener('click',function(){
+  g('mainApp').style.display='none';
+  g('loginPage').style.display='flex';
+  g('lu').value='';g('lp').value='';
+  g('errBox').style.display='none';
+});
+g('demoFill').addEventListener('click',function(){g('lu').value='admin';g('lp').value='admin123';g('lu').focus();});
+g('lp').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+g('lu').addEventListener('keydown',function(e){if(e.key==='Enter')g('lp').focus();});
+
+// ── NAV ──
+document.querySelectorAll('.nav-item').forEach(function(el){
+  el.addEventListener('click',function(){
+    document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
+    document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+    el.classList.add('active');
+    g('page-'+el.getAttribute('data-page')).classList.add('active');
+    refreshAll();
+  });
+});
+
+// ── MODALS ──
+function openM(id){g(id).classList.add('open');}
+function closeM(id){g(id).classList.remove('open');}
+document.querySelectorAll('[data-close]').forEach(function(el){
+  el.addEventListener('click',function(){closeM(el.getAttribute('data-close'));});
+});
+document.querySelectorAll('.modal-ov').forEach(function(ov){
+  ov.addEventListener('click',function(e){if(e.target===ov)ov.classList.remove('open');});
+});
+
+// ── REFRESH ──
+function refreshAll(){
+  g('eBadge').textContent=emps.length;
+  g('iBadge').textContent=incs.length;
+  g('s1').textContent=emps.length;
+  g('s2').textContent=new Set(emps.map(function(e){return e.department;})).size;
+  g('s3').textContent=incs.filter(function(i){return i.status!=='Resolved';}).length;
+  g('s4').textContent=incs.filter(function(i){return i.status==='Resolved';}).length;
+  renderDash();renderEmps(emps);renderIncs(incs);
+}
+
+function renderDash(){
+  var rows=incs.slice().reverse().slice(0,5);
+  g('dashTbl').innerHTML=rows.length?rows.map(function(i){
+    var e=emps.find(function(x){return x.id===i.aid;});
+    return '<tr><td style="color:var(--muted);font-size:.8rem">'+i.id+'</td><td>'+i.title+'</td><td>'+(e?e.name:'—')+'</td><td>'+(e?dc(e.department):'—')+'</td><td style="color:var(--accent);font-size:.83rem">'+(e?e.managerEmail:'—')+'</td><td>'+sc(i.status)+'</td><td>'+pc(i.priority)+'</td></tr>';
+  }).join(''):'<tr class="erow"><td colspan="7">No incidents yet</td></tr>';
+}
+
+function renderEmps(list){
+  g('eTbl').innerHTML=list.length?list.map(function(e){
+    return '<tr><td><strong>'+e.name+'</strong></td><td style="color:var(--muted)">'+e.email+'</td><td>'+dc(e.department)+'</td><td>'+e.manager+'</td><td style="color:var(--accent)">'+e.managerEmail+'</td><td><button type="button" class="btn btn-secondary btn-sm" onclick="window._editE('+e.id+')">Edit</button> <button type="button" class="btn btn-danger btn-sm" onclick="window._delE('+e.id+')">Delete</button></td></tr>';
+  }).join(''):'<tr class="erow"><td colspan="6">No employees found. Add or import some.</td></tr>';
+}
+
+function renderIncs(list){
+  g('iTbl').innerHTML=list.length?list.map(function(i){
+    var e=emps.find(function(x){return x.id===i.aid;});
+    return '<tr><td style="color:var(--muted);font-size:.8rem">'+i.id+'</td><td><strong>'+i.title+'</strong></td><td>'+(e?e.name:'<span style="color:var(--muted)">Unassigned</span>')+'</td><td>'+(e?dc(e.department):'—')+'</td><td style="color:var(--accent);font-size:.83rem">'+(e?e.managerEmail:'—')+'</td><td>'+pc(i.priority)+'</td><td>'+sc(i.status)+'</td><td><button type="button" class="btn btn-secondary btn-sm" onclick="window._cycleI(\''+i.id+'\')">Update</button> <button type="button" class="btn btn-danger btn-sm" onclick="window._delI(\''+i.id+'\')">Delete</button></td></tr>';
+  }).join(''):'<tr class="erow"><td colspan="8">No incidents yet</td></tr>';
+}
+
+// ── SEARCH ──
+g('eSearch').addEventListener('input',function(){
+  var q=this.value.toLowerCase();
+  renderEmps(emps.filter(function(e){return (e.name+e.email+e.department).toLowerCase().indexOf(q)>=0;}));
+});
+g('iSearch').addEventListener('input',function(){
+  var q=this.value.toLowerCase();
+  renderIncs(incs.filter(function(i){return (i.title+i.id).toLowerCase().indexOf(q)>=0;}));
+});
+
+// ── EMP CRUD ──
+g('addEBtn').addEventListener('click',function(){
+  editId=null;g('empMT').textContent='Add Employee';
+  ['fn','fe','fm','fme'].forEach(function(id){g(id).value='';});g('fd').value='';
+  openM('empModal');
+});
+window._editE=function(id){
+  var e=emps.find(function(x){return x.id===id;});if(!e)return;
+  editId=id;g('empMT').textContent='Edit Employee';
+  g('fn').value=e.name;g('fe').value=e.email;g('fd').value=e.department;
+  g('fm').value=e.manager;g('fme').value=e.managerEmail;
+  openM('empModal');
+};
+g('saveEmpBtn').addEventListener('click',function(){
+  var n=g('fn').value.trim(),em=g('fe').value.trim(),d=g('fd').value,m=g('fm').value.trim(),me=g('fme').value.trim();
+  if(!n||!em||!d||!m||!me){toast('Please fill all fields','error');return;}
+  if(editId){
+    var idx=emps.findIndex(function(e){return e.id===editId;});
+    emps[idx]={id:editId,name:n,email:em,department:d,manager:m,managerEmail:me};
+    toast('Employee updated ✓');
+  } else {
+    emps.push({id:eIdC++,name:n,email:em,department:d,manager:m,managerEmail:me});
+    toast('Employee added ✓');
+  }
+  closeM('empModal');refreshAll();
+});
+window._delE=function(id){
+  emps=emps.filter(function(e){return e.id!==id;});
+  refreshAll();toast('Employee deleted');
+};
+
+// ── INCIDENT CRUD ──
+g('addIBtn').addEventListener('click',function(){
+  var sel=g('iassign');
+  sel.innerHTML='<option value="">— Select Employee —</option>'+
+    emps.map(function(e){return '<option value="'+e.id+'">'+e.name+' ('+e.department+')</option>';}).join('');
+  g('it').value='';g('idesc').value='';g('ipri').value='Medium';g('istat').value='Open';
+  g('mgrBox').style.display='none';
+  openM('incModal');
+});
+g('iassign').addEventListener('change',function(){
+  var id=parseInt(this.value);
+  var e=emps.find(function(x){return x.id===id;});
+  if(e){
+    g('mgrVal').textContent=e.managerEmail+' · '+e.department+' Dept · Manager: '+e.manager;
+    g('mgrBox').style.display='block';
+  } else {
+    g('mgrBox').style.display='none';
+  }
+});
+g('saveIncBtn').addEventListener('click',function(){
+  var t=g('it').value.trim();
+  if(!t){toast('Title is required','error');return;}
+  var aid=parseInt(g('iassign').value);
+  var id='INC-'+String(iIdC++).padStart(3,'0');
+  incs.push({id:id,title:t,desc:g('idesc').value.trim(),aid:isNaN(aid)?null:aid,priority:g('ipri').value,status:g('istat').value});
+  closeM('incModal');refreshAll();toast('Incident '+id+' created ✓');
+});
+window._cycleI=function(id){
+  var i=incs.find(function(x){return x.id===id;});if(!i)return;
+  var c=['Open','In Progress','Resolved'];
+  i.status=c[(c.indexOf(i.status)+1)%c.length];
+  refreshAll();toast(id+' \u2192 '+i.status);
+};
+window._delI=function(id){
+  incs=incs.filter(function(i){return i.id!==id;});
+  refreshAll();toast('Incident deleted');
+};
+
+// ── CSV IMPORT ──
+g('dropZone').addEventListener('click',function(){g('csvFile').click();});
+g('csvFile').addEventListener('change',function(){
+  var file=this.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    var lines=ev.target.result.split('\n').filter(function(l){return l.trim();});
+    var headers=lines[0].split(',').map(function(h){return h.trim().toLowerCase();});
+    var req=['name','email','department','manager','manageremail'];
+    if(!req.every(function(r){return headers.indexOf(r)>=0;})){
+      toast('Missing required CSV columns. Check format guide.','error');return;
+    }
+    pImport=lines.slice(1).map(function(line){
+      var v=line.split(',').map(function(x){return x.trim();});
+      var row={};headers.forEach(function(h,i){row[h]=v[i]||'';});
+      return {name:row.name,email:row.email,department:row.department,manager:row.manager,managerEmail:row.manageremail};
+    }).filter(function(r){return r.name&&r.email;});
+    g('prevTbl').innerHTML=pImport.map(function(r){
+      return '<tr><td>'+r.name+'</td><td>'+r.email+'</td><td>'+dc(r.department)+'</td><td>'+r.manager+'</td><td style="color:var(--accent)">'+r.managerEmail+'</td></tr>';
+    }).join('');
+    g('prevTitle').textContent='Preview ('+pImport.length+' rows)';
+    g('importPrev').style.display='block';
+    toast(pImport.length+' rows ready for import');
+  };
+  reader.readAsText(file);this.value='';
+});
+g('confirmImp').addEventListener('click',function(){
+  if(!pImport.length)return;
+  pImport.forEach(function(r){emps.push({id:eIdC++,name:r.name,email:r.email,department:r.department,manager:r.manager,managerEmail:r.managerEmail});});
+  toast(pImport.length+' employees imported \u2713');
+  pImport=[];g('importPrev').style.display='none';refreshAll();
+});
+
+refreshAll();
+})();
+</script>
+</body>
+</html>
